@@ -154,7 +154,7 @@ grid.best_params_
 
 The ideal number of epochs to use in our model out of 10, 20, 30, and 40 is 30.
 
-Train the model with ideal epochs, 30
+Train the model with ideal epochs, 30. Using **grid.best_params_ will feed this directly into the model instead of manually entering the number of epochs or other parameters if the code is changed later.
 
 ```python
 nnretrain=shallownetwork()
@@ -162,6 +162,7 @@ nnretrain=shallownetwork()
 nnretrain.fit(X_train,Y_train,**grid.best_params_,batch_size=10000,verbose=1)
 ```
 
+Store predicted values as Y_predict
 ```python
 Y_predict=pd.DataFrame(nnretrain.predict(X_test),columns=['Y_predict'])
 ```
@@ -209,6 +210,7 @@ ret_rf    0.755798
 
 **Build a deep neural network with more than 2 hidden layers. Feel free to pick the number of hidden layers. Use RandomizedSearchCV to search for the best values of epochs, batch size, and the number of neurons in each hidden layer. Use the best values of epochs, batch size, and the number of neurons in each hidden layer found in the search to train the deep neural network using your new training sample. Use the trained deep neural network to predict returns based on your new testing sample. Report the average return of the portfolio that consists of the 100 stocks with the highest predicted returns in each year-month. Also, report the Sharpe ratio of the portfolio.**
 
+Create the model
 ```python
 def deepnetwork(no_neuron1,no_neuron2,no_neuron3,no_neuron4,no_neuron5,no_neuron6,no_neuron7,no_neuron8,no_neuron9,no_neuron10):
     model=Sequential()
@@ -275,6 +277,8 @@ rgrid.best_params_
  'no_neuron9': 82}
  ```
  
+rgrid.best_params_['no_neuronX'], where X is the nth neuron, will take these best parameters and feed them directly into the model allowing for automation.
+
 ```python
  #rgrid.best_params_['no_neuronX'] feeds neuron output from best params into model
 def deepnetwork1():
@@ -294,12 +298,15 @@ def deepnetwork1():
     return model
 ```
 
+Fit the model
+
 ```python
 deep_n=deepnetwork1()
 #best params fed directky into model fit
 deep_n.fit(X_train,Y_train,epochs=rgrid.best_params_['epochs'],batch_size=rgrid.best_params_['batch_size'],verbose=1)
 ```
 
+Store predicted values in Y_predict2
 ```python
 Y_predict2=pd.DataFrame(deep_n.predict(X_test),columns=['Y_predict'])
 ```
@@ -308,6 +315,7 @@ Y_predict2=pd.DataFrame(deep_n.predict(X_test),columns=['Y_predict'])
 Y_test2=pd.DataFrame(Y_test).reset_index()
 ```
 
+Combine and rank the data
 ```python
 Comb1=pd.merge(Y_test2, Y_predict2, left_index=True,right_index=True,how='inner')
 Comb1['Year']=Comb1['datadate'].dt.year
@@ -343,7 +351,7 @@ SRdeepnetwork
 ret_rf    0.88788
 ```
 
-### Additional Libraries for Hypertuning
+### Additional Libraries for ensemble models
 
 ```python
 from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
@@ -400,6 +408,8 @@ Plot feature importance
 ```python
 FIM_score.plot(kind="barh",x='Feature',y='Feature Importance',title="Feature Importance",xerr='Feature Importance_std',fontsize=25,color='red')
 ```
+
+Lagvol12 and Lagvol2 are the most important features
 
 ![image](https://user-images.githubusercontent.com/72087263/188294589-fd21e79e-084e-4973-8a91-15a45c91e792.png)
 
@@ -488,6 +498,8 @@ sm.OLS(stock_long5[['ret']],stock_long5[['const']]).fit().get_robustcov_results(
 
 <img width="407" alt="image" src="https://user-images.githubusercontent.com/72087263/188294961-12eb5fec-a7ee-4c96-a69a-29d2cda217bb.png">
 
+**The model predicts a return of 35.61% over the market.**
+
 Sharpe ratio
 ```python
 Ret_rf=stock_long5[['ret_rf']]
@@ -522,6 +534,7 @@ HGBRensemble1.fit(X_train,Y_train.values.ravel())
 ```
 
 Use neural net to build model ensemble
+
 ```python
 #Neural net
 def deepnetworkensemble1():
@@ -626,6 +639,8 @@ sm.OLS(stock_long5[['ret']],stock_long5[['const']]).fit().get_robustcov_results(
 Model Summary
 <img width="405" alt="image" src="https://user-images.githubusercontent.com/72087263/188295265-438c07aa-3c44-499c-a0e9-846048007de6.png">
 
+**The linear prediction model results in a loss of -25.45% relative to the market.**
+
 Sharpe ratio
 ```python
 Ret_rf=stock_long5[['ret_rf']]
@@ -636,3 +651,7 @@ SRlinensemble
 ```python
 ret_rf   -12.990851
 ```
+
+## Conclusion
+
+Using neural networks, the best predicted return/Sharpe Ratio comes from the ensemble model with a return of 35.61% over the market and a ratio of 8.22. The shallow and deep neural networks produce returns of 1.49% and 1.1% above the market, and Sharpe Ratios of 0.76 and 0.89, respectively. Using a linear model to combine predictions results in a return of -25.45% and a Sharpe Ratio of -12.99. The basic ensemble model average results in the best return among all models.

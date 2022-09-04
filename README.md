@@ -10,7 +10,7 @@ This project follows a series of prompts to determine if a neural network model 
 
 ## Preparing the Data
 
-**Please construct a new dataset by either adding two independent variables or removing two independent variables from finalsample.dta dataset. If you choose to add two independent variables, you could add any two independent variables that you think help explain stock returns. If  you  choose  to  remove  two independent variables, you could remove any two independent variables that already exist in the finalsample.dta dataset.
+**Please construct a new dataset by either adding two independent variables or removing two independent variables from finalsample.dta dataset. If you choose to add two independent variables, you could add any two independent variables that you think help explain stock returns. If you choose to remove two independent variables, you could remove any two independent variables that already exist in the finalsample.dta dataset.**
 
 ### Libraries
 ```python
@@ -123,6 +123,7 @@ Factor=pd.read_excel("/Users/jimmyaspras/Downloads/Factors.xlsx")
 
 **Build a neural network with one hidden layer and 20 neurons in the hidden layer. Set batch size=10,000. Use GridSearchCV to search for the best value of  epochs among [10, 20, 30, 40]. Use the best value of epochs found in the search to train this neural network using your new training sample. Use the trained neural network to predict returns based on your new testing sample. Report the average return of the portfolio that consists of the 100 stocks with the highest predicted returns in each year-month. Also, report the Sharpe ratio of the portfolio. 
 
+Create the model
 ```python
 def shallownetwork():
     model=Sequential()
@@ -132,6 +133,7 @@ def shallownetwork():
     return model
 ```
 
+Determine best number of epochs to use in the model
 ```python
 tsplit=TimeSeriesSplit(n_splits=5,test_size=50000,gap=5000)
 model1=KerasRegressor(build_fn=shallownetwork)
@@ -139,26 +141,6 @@ param_candidate={'epochs': [10,20,30,40]}
 grid=GridSearchCV(estimator=model1,param_grid=param_candidate,n_jobs=-1,cv=tsplit,scoring='neg_mean_squared_error')
 grid.fit(X_train,Y_train,batch_size=10000,verbose=0)
 grid.cv_results_
-```
-Output
-```python
-{'mean_fit_time': array([10.97182283,  8.14502058, 12.20729866, 16.87534151]),
- 'std_fit_time': array([2.02224683, 1.5556716 , 1.79913007, 4.94902274]),
- 'mean_score_time': array([3.55519547, 4.03498945, 4.05364237, 3.30667205]),
- 'std_score_time': array([1.14943611, 0.70416456, 1.47834758, 2.14423576]),
- 'param_epochs': masked_array(data=[10, 20, 30, 40],
-              mask=[False, False, False, False],
-        fill_value='?',
-             dtype=object),
- 'params': [{'epochs': 10}, {'epochs': 20}, {'epochs': 30}, {'epochs': 40}],
- 'split0_test_score': array([-3.15814442e+09, -1.45939508e+09, -8.41260678e+08, -1.47120575e+07]),
- 'split1_test_score': array([-1.42508775e+10, -5.88534408e+08, -8.67318107e+07, -7.57039395e+09]),
- 'split2_test_score': array([-6.71055384e+09, -2.37823606e+09, -2.70078202e+08, -2.63812739e+07]),
- 'split3_test_score': array([-2.39900563e+08, -2.68398658e+08, -4.05095026e+06, -2.62379774e+07]),
- 'split4_test_score': array([-1.70744964e+08, -1.21994167e+08, -8.90234850e+06, -8.62186709e+07]),
- 'mean_test_score': array([-4.90604425e+09, -9.63311674e+08, -2.42204798e+08, -1.54478879e+09]),
- 'std_test_score': array([5.25039566e+09, 8.46083566e+08, 3.14631217e+08, 3.01290680e+09]),
- 'rank_test_score': array([4, 2, 1, 3], dtype=int32)}
 ```
 
 Display best params
@@ -172,7 +154,7 @@ grid.best_params_
 
 The ideal number of epochs to use in our model out of 10, 20, 30, and 40 is 30.
 
-Train the model
+Train the model with ideal epochs, 30
 
 ```python
 nnretrain=shallownetwork()
@@ -188,6 +170,7 @@ Y_predict=pd.DataFrame(nnretrain.predict(X_test),columns=['Y_predict'])
 Y_test1=pd.DataFrame(Y_test).reset_index()
 ```
 
+Predict and rank returns
 ```python
 Comb1=pd.merge(Y_test1, Y_predict, left_index=True,right_index=True,how='inner')
 Comb1['Year']=Comb1['datadate'].dt.year
@@ -210,7 +193,7 @@ Model summary
 
 <img width="405" alt="image" src="https://user-images.githubusercontent.com/72087263/188293332-dc8a4040-7ce6-41ee-a14d-aebb81c513b9.png">
 
-**The model produces a return of 1.49% above the market.
+**The model produces a return of 1.49% above the market.**
 
 Sharpe Ratio
 
